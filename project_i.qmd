@@ -5,23 +5,54 @@ editor: visual
 embed-resources: true
 ---
 
-## Quarto
+## Datasets
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+Using the two datasets 'income_per_person_long_series' and 'internet users' we plan to find that the higher a persons income is the more access they can have to technology.
 
-## Running Code
+## Cleaning the data
 
 When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
 
 ```{r}
-1 + 1
+library(tidyverse)
 ```
 
-You can add options to executable code like this
 
 ```{r}
-#| echo: false
-2 * 2
+income_original <- read_csv("income_per_person_long_series.csv")
+internet_original <- read_csv("internet_users.csv")
+```
+##Income CLeaning
+```{r}
+# Function to convert 'k' values (e.g., "1.1k") to numeric
+convert_k_to_num <- function(x) {
+  x <- as.character(x)
+  ifelse(
+    str_detect(x, "k"),
+    as.numeric(str_remove(x, "k")) * 1000,
+    as.numeric(x)
+  )
+}
+
+# Apply conversion to all columns except 'country'
+income_clean <- income_original |>
+  mutate(across(-country, convert_k_to_num)) |>
+  pivot_longer(-country, names_to = "year", values_to = "income") |>
+  mutate(year = as.numeric(year))
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+##Internet Cleaning
+```{r}
+internet_clean <- internet_original |>
+  mutate(across(-country, convert_k_to_num)) |>
+  pivot_longer(-country, names_to = "year", values_to = "internet_users") |>
+  mutate(year = as.numeric(year))
+
+```
+
+Join the Datasets
+```{r}
+combined_data <- income_clean |>
+  inner_join(internet_clean, by = c("country", "year"))
+
+```
