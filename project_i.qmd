@@ -3,6 +3,7 @@ title: "STAT 331 Project Group I"
 format: html
 editor: visual
 embed-resources: true
+bibliography: references.bib
 ---
 
 ## Datasets
@@ -22,7 +23,7 @@ library(tidyverse)
 income_original <- read_csv("income_per_person_long_series.csv")
 internet_original <- read_csv("internet_users.csv")
 ```
-##Income CLeaning
+## Income Cleaning
 ```{r}
 # Function to convert 'k' values (e.g., "1.1k") to numeric
 convert_k_to_num <- function(x) {
@@ -41,13 +42,12 @@ income_clean <- income_original |>
   mutate(year = as.numeric(year))
 ```
 
-##Internet Cleaning
+## Internet Cleaning
 ```{r}
 internet_clean <- internet_original |>
   mutate(across(-country, convert_k_to_num)) |>
   pivot_longer(-country, names_to = "year", values_to = "internet_users") |>
   mutate(year = as.numeric(year))
-
 ```
 
 Join the Datasets
@@ -56,3 +56,6 @@ combined_data <- income_clean |>
   inner_join(internet_clean, by = c("country", "year"))
 
 ```
+
+## Written Component
+We are examining whether there is a relationship between a country’s GDP per capita and the percentage of its population using the internet (@Gapminder) and (@World_Bank_Open_Data). Specifically, we hypothesize that countries with higher GDP per capita will also have higher internet usage. We thought that wealthier countries are more likely to have the technological accessibility needed to support widespread internet. We did find outside evidence to support this claim, (@Author_2014) found that income is a strong predictor of internet use across countries. One thing we had to do to prepare the data for analysis involved converting GDP per capita values into full numeric values. For example, income values like "31.7k" were converted to "31700" to allow for numerical analysis.
