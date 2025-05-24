@@ -1,8 +1,18 @@
 ---
 title: "STAT 331 Project Group I"
-format: html
-editor: visual
+author: "Derrick Phan, Steven Ortiz, Jaden Sung, Will Mathewson"
+format: 
+  html:
+    embed-resources: true
+    code-tools: true
+    toc: true
+editor: source
 embed-resources: true
+execute: 
+  error: true
+  echo: true
+  message: false
+  warning: false
 bibliography: references.bib
 ---
 
@@ -11,8 +21,6 @@ bibliography: references.bib
 Using the two datasets 'income_per_person_long_series' and 'internet users' we plan to find that the higher a persons income is the more access they can have to technology.
 
 ## Cleaning the data
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
 
 ```{r}
 library(tidyverse)
