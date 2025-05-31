@@ -27,10 +27,16 @@ Using the two datasets 'income_per_person_long_series' and 'internet users' we p
 
 
 ```{r}
+# Load in all necessary packages
 library(tidyverse)
+library(broom)
+library(knitr)
+library(gganimate)
+library(gifski)
 ```
 
 ```{r}
+# Read in the csv files
 income_original <- read_csv("income_per_person_long_series.csv")
 internet_original <- read_csv("internet_users.csv")
 ```
@@ -52,8 +58,11 @@ convert_k_to_num <- function(x) {
 
 # Apply conversion to all columns except 'country'
 income_clean <- income_original |>
-  mutate(across(-country, convert_k_to_num)) |>
-  pivot_longer(-country, names_to = "year", values_to = "income") |>
+  mutate(across(-country, 
+                convert_k_to_num)) |>
+  pivot_longer(-country, 
+               names_to = "year", 
+               values_to = "income") |>
   mutate(year = as.numeric(year))
 ```
 
@@ -64,8 +73,11 @@ income_clean <- income_original |>
 
 ```{r}
 internet_clean <- internet_original |>
-  mutate(across(-country, convert_k_to_num)) |>
-  pivot_longer(-country, names_to = "year", values_to = "internet_users") |>
+  mutate(across(-country, 
+                convert_k_to_num)) |>
+  pivot_longer(-country, 
+               names_to = "year", 
+               values_to = "internet_users") |>
   mutate(year = as.numeric(year))
 ```
 
@@ -76,74 +88,102 @@ Join the Datasets
 
 ```{r}
 combined_data <- income_clean |>
-  inner_join(internet_clean, by = c("country", "year"))
-
-```
-
-
-## Visualizing the Data
-
-
-```{r}
-# Aggregate data: average per country over all years
-avg_data <- combined_data |>
-  group_by(country) |>
-  summarize(
-    avg_income = mean(income, na.rm = TRUE),
-    avg_internet_users = mean(internet_users, na.rm = TRUE)
-  )
-
-# Plot
-ggplot(avg_data, aes(x = avg_income, y = avg_internet_users)) +
-  geom_point(color = "darkblue", alpha = 0.7) +
-  scale_x_continuous(labels = scales::comma) +
-  labs(
-    title = "Average Internet Usage vs. GDP per Capita",
-    x = "Average GDP per Capita (USD)",
-    y = "Average Internet Usage (%)",
-    caption = "Data Source: Gapminder & World Bank"
-  ) +
-  theme_minimal()
-
-```
-
-
-## Animated Plot
-
-
-```{r animated-scatter-plot, message=FALSE, warning=FALSE, fig.width=10, fig.height=7}
-library(ggplot2)
-library(gganimate)
-library(dplyr)
-
-# Example dataset: Replace this with your actual data frame
-# Assuming your data frame is named `your_data` with columns: country, year, GDP, internet_usage
-# Filter the dataset as needed
-data <- combined_data %>% filter(!is.na(internet_users) & !is.na(income))
-
-# Create the plot
-p <- ggplot(data, aes(x = income, y = internet_users, color = country)) +
-  geom_point(alpha = 0.7, size = 3) +
-  scale_x_continuous(name = "Average GDP per Capita (USD)") +
-  scale_y_continuous(name = "Average Internet Usage (%)") +
-  theme_minimal() +
-  labs(title = "Average Internet Usage vs GDP per Capita",
-       subtitle = "Year: {frame_time}",
-       color = "Country") +
-  transition_time(year) +
-  ease_aes('linear')
-
-# Animate and save as GIF
-animated_gif <- animate(p, width = 800, height = 600, fps = 10, duration = 10, renderer = gifski_renderer())
-
-anim_save("internet_usage_vs_gdp.gif", animated_gif)
-
-# Include the saved GIF in the RMarkdown output
-knitr::include_graphics("internet_usage_vs_gdp.gif")
-
+  inner_join(internet_clean, 
+             by = c("country", "year"))
 ```
 
 
 
 ## Written Component
 We are examining whether there is a relationship between a country’s GDP per capita and the percentage of its population using the internet. We got the internet data from Gapminder @Gapminder, which gives the proportion of people in each country that have internet access each year since 1960 and we got our income data from World Bank @World_Bank_Open_Data. This data provides the GDP per capita of each country year by year. We hypothesize that countries with higher GDP per capita will also have higher internet usage. We thought that wealthier countries are more likely to have the technological accessibility needed to support widespread internet. We did find outside evidence to support this claim, this author from Pew Reasearch @Author_2014 found that income is a strong predictor of internet use across countries. One thing we had to do to prepare the data for analysis involved converting GDP per capita values into full numeric values. For example, income values like "31.7k" were converted to "31700" to allow for numerical analysis.
+
+## Visualizing the Data (2.1)
+
+
+```{r}
+# Aggregate data: average per country over all years
+avg_data <- combined_data |>
+  group_by(country) |>
+  summarize(avg_income = mean(income, 
+                              na.rm = TRUE),
+            avg_internet_users = mean(internet_users, 
+                                      na.rm = TRUE))
+
+# Plot
+ggplot(avg_data, 
+       aes(x = avg_income, 
+           y = avg_internet_users)) +
+  geom_point(alpha = 0.7,
+             color = "darkblue", 
+             size = 2) +
+  scale_x_continuous(labels = scales :: comma) +
+  labs(title = "Average Internet Usage vs. GDP per Capita",
+       x = "Average GDP per Capita (USD)",
+       y = "Average Internet Usage (%)",
+       caption = "Data Source: Gapminder & World Bank") +
+  theme_minimal()
+```
+
+```{r create-gif, eval = TRUE, include = FALSE}
+animated_plot <- ggplot(combined_data, 
+                        aes(x = income, 
+                            y = internet_users)) +
+  geom_point(alpha = 0.7, 
+             color = "red", 
+             size = 2) +
+  scale_x_continuous(labels = scales :: comma) +
+  scale_y_continuous(labels = scales :: percent_format(scale = 1)) +
+  labs(x = "GDP per Capita (USD)",
+       y = "Internet Users (%)",
+       title = "Internet Usage vs. Income: {frame_time}", 
+       subtitle = "Each point is one country in a given year",
+       caption = "Data Source: Gapminder & World Bank") +
+  theme_minimal() +
+  transition_time(year) +
+  ease_aes('linear')
+
+# 2) Render as a GIF, saved it to an object to try to fix rendering issues
+animated_obj <- animate(animated_plot, 
+                        fps = 2, 
+                        duration = 10,
+                        width = 600, 
+                        height = 450,
+                        renderer = gifski_renderer("income_vs_internet.gif"))
+
+anim_save("income_vs_internet.gif", 
+          animation = animated_obj)
+```
+
+```{r show-gif, eval = FALSE}
+knitr::include_graphics("income_vs_internet.gif")
+```
+
+```{r}
+# Plot with regression line (2.2)
+ggplot(avg_data, 
+       aes(x = avg_income, 
+           y = avg_internet_users)) +
+  geom_point(color = "darkblue", 
+             alpha = 0.7) +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              color = "red") +
+  scale_x_continuous(labels = scales :: comma) +
+  scale_y_continuous(labels = scales :: percent_format(scale = 1)) +
+  labs(title = "Linear Regression: Internet Usage vs. GDP per Capita",
+       x = "Average GDP per Capita (USD)",
+       y = "Average Internet Usage (%)",
+       caption = "Data Source: Gapminder & World Bank") +
+  theme_minimal()
+```
+
+```{r}
+# Fit linear regression model
+model <- lm(avg_internet_users ~ avg_income, 
+            data = avg_data)
+
+# Tidy and display coefficients
+tidy(model) |>
+  kable(caption = "Linear Regression Coefficients: Internet Usage ~ GDP per Capita")
+```
+
