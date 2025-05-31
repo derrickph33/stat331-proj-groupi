@@ -125,12 +125,26 @@ ggplot(avg_data, aes(x = avg_income, y = avg_internet_users)) +
 We are examining whether there is a relationship between a country’s GDP per capita and the percentage of its population using the internet. We got the internet data from Gapminder @Gapminder, which gives the proportion of people in each country that have internet access each year since 1960 and we got our income data from World Bank @World_Bank_Open_Data. This data provides the GDP per capita of each country year by year. We hypothesize that countries with higher GDP per capita will also have higher internet usage. We thought that wealthier countries are more likely to have the technological accessibility needed to support widespread internet. We did find outside evidence to support this claim, this author from Pew Reasearch @Author_2014 found that income is a strong predictor of internet use across countries. One thing we had to do to prepare the data for analysis involved converting GDP per capita values into full numeric values. For example, income values like "31.7k" were converted to "31700" to allow for numerical analysis.
 
 ```{r}
-summary_df <- full_data |>
-  filter(year >= 2015, year <= 2020) %>%
-  group_by(country) |>
-  summarize(
-    mean_military = mean(military_spending, na.rm = TRUE),
-    mean_childcare = mean(childcare_costs, na.rm = TRUE)
-  )
+# Plot with regression line
+ggplot(avg_data, aes(x = avg_income, y = avg_internet_users)) +
+  geom_point(color = "darkblue", alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  scale_x_continuous(labels = scales::comma) +
+  labs(
+    title = "Linear Regression: Internet Usage vs. GDP per Capita",
+    x = "Average GDP per Capita (USD)",
+    y = "Average Internet Usage (%)",
+    caption = "Data Source: Gapminder & World Bank"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+# Fit linear regression model
+model <- lm(avg_internet_users ~ avg_income, data = avg_data)
+
+# Tidy and display coefficients
+tidy(model) |>
+  kable(digits = 3, caption = "Linear Regression Coefficients: Internet Usage ~ GDP per Capita")
 ```
 
