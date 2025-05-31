@@ -16,11 +16,15 @@ execute:
 bibliography: references.bib
 ---
 
+
+
 ## Datasets
 
 Using the two datasets 'income_per_person_long_series' and 'internet users' we plan to find that the higher a persons income is the more access they can have to technology.
 
 ## Cleaning the data
+
+
 
 ```{r}
 library(tidyverse)
@@ -30,7 +34,11 @@ library(tidyverse)
 income_original <- read_csv("income_per_person_long_series.csv")
 internet_original <- read_csv("internet_users.csv")
 ```
+
+
 ## Income Cleaning
+
+
 ```{r}
 # Function to convert 'k' values (e.g., "1.1k") to numeric
 convert_k_to_num <- function(x) {
@@ -49,7 +57,11 @@ income_clean <- income_original |>
   mutate(year = as.numeric(year))
 ```
 
+
+
 ## Internet Cleaning
+
+
 ```{r}
 internet_clean <- internet_original |>
   mutate(across(-country, convert_k_to_num)) |>
@@ -57,13 +69,21 @@ internet_clean <- internet_original |>
   mutate(year = as.numeric(year))
 ```
 
+
+
 Join the Datasets
+
+
 ```{r}
 combined_data <- income_clean |>
   inner_join(internet_clean, by = c("country", "year"))
 
 ```
+
+
 ## Visualizing the Data
+
+
 ```{r}
 # Aggregate data: average per country over all years
 avg_data <- combined_data |>
@@ -86,7 +106,11 @@ ggplot(avg_data, aes(x = avg_income, y = avg_internet_users)) +
   theme_minimal()
 
 ```
+
+
 ## Animated Plot
+
+
 ```{r animated-scatter-plot, message=FALSE, warning=FALSE, fig.width=10, fig.height=7}
 library(ggplot2)
 library(gganimate)
@@ -118,6 +142,8 @@ anim_save("internet_usage_vs_gdp.gif", animated_gif)
 knitr::include_graphics("internet_usage_vs_gdp.gif")
 
 ```
+
+
 
 ## Written Component
 We are examining whether there is a relationship between a country’s GDP per capita and the percentage of its population using the internet. We got the internet data from Gapminder @Gapminder, which gives the proportion of people in each country that have internet access each year since 1960 and we got our income data from World Bank @World_Bank_Open_Data. This data provides the GDP per capita of each country year by year. We hypothesize that countries with higher GDP per capita will also have higher internet usage. We thought that wealthier countries are more likely to have the technological accessibility needed to support widespread internet. We did find outside evidence to support this claim, this author from Pew Reasearch @Author_2014 found that income is a strong predictor of internet use across countries. One thing we had to do to prepare the data for analysis involved converting GDP per capita values into full numeric values. For example, income values like "31.7k" were converted to "31700" to allow for numerical analysis.
