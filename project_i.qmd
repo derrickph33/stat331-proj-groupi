@@ -104,7 +104,9 @@ ggplot(avg_data,
   theme_minimal()
 ```
 
-```{r create-gif, eval = TRUE, include = FALSE}
+```{r}
+#| eval: false
+
 animated_plot <- ggplot(combined_data, 
                         aes(x = income, 
                             y = internet_users)) +
@@ -128,15 +130,12 @@ animated_obj <- animate(animated_plot,
                         duration = 10,
                         width = 600, 
                         height = 450,
-                        renderer = gifski_renderer("income_vs_internet.gif"))
+                        renderer = gifski_renderer())
 
 anim_save("income_vs_internet.gif", 
           animation = animated_obj)
 ```
-
-```{r show-gif, eval = FALSE}
-knitr::include_graphics("income_vs_internet.gif")
-```
+![](income_vs_internet.gif)
 
 ```{r}
 # Plot with regression line (2.2)
