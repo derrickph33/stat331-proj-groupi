@@ -250,3 +250,46 @@ tibble(Statistic = c("Var(Response) = Var(avg_internet_users)",
 The table presents the variances as well the model R². It shows us that the total variance in average Internet usage across countries is 298.517, of which 129.507 (about 43.4%) is explained by the linear relationship with average GDP per Capita; the remaining 169.010 represents unexplained variance. 
 
 Since R² = 0.434, our model accounts for roughly 43.4% of the variability in average internet usage. This suggests a moderate fit in our model which GDP per Capita explains cross‐country differences in Internet adoption, while additionally over half of the variance remains due to other factors. 
+
+## Cross Validation 
+```{r}
+
+library(purrr)
+
+# Create the folds: we will use 5 folds (at least 10 samples per fold)
+k <- 5
+n <- nrow(avg_data)
+fold_assignments <- sample(rep(1:k, length.out = n))
+
+# Define a function to compute R² for a single fold
+compute_r2_fold <- function(fold_num) {
+  train_data <- avg_data[fold_assignments != fold_num, ]
+  val_data   <- avg_data[fold_assignments == fold_num, ]
+  
+  model_k <- lm(avg_internet_users ~ avg_income, data = train_data)
+  predictions <- predict(model_k, newdata = val_data)
+  
+  ss_res <- sum((val_data$avg_internet_users - predictions)^2)
+  ss_tot <- sum((val_data$avg_internet_users - mean(val_data$avg_internet_users))^2)
+  
+  r2 <- 1 - ss_res / ss_tot
+  return(r2)
+}
+
+# Compute R² for each fold using map
+r2_values <- map_dbl(1:k, compute_r2_fold)
+
+# Create a data frame for plotting
+r2_df <- tibble(Fold = 1:k, R2 = r2_values)
+
+# Plot the R² values
+ggplot(r2_df, aes(x = factor(Fold), y = R2)) +
+  geom_col(fill = "steelblue") +
+  geom_hline(yintercept = mean(r2_values), linetype = "dashed", color = "red") +
+  labs(title = "R² Values from 5-Fold Cross-Validation",
+       x = "Fold",
+       y = "Validation R²") +
+  theme_minimal()
+
+```
+
