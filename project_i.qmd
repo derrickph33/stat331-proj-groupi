@@ -20,11 +20,12 @@ bibliography: references.bib
 
 Using two datasets with records of GDP per Capita and Internet usage rates we plan to find whether the higher a persons income is the more access they can have to technology.
 
-We are examining whether there is a relationship between a country’s GDP per Capita and the percentage of its population using the internet. We got the internet data from Gapminder @Gapminder, which gives the proportion of people in each country that have internet access each year since 1960 and we got our income data from World Bank @World_Bank_Open_Data. This data provides the GDP per Capita of each country year by year. We hypothesize that countries with higher GDP per Capita will also have higher internet usage. We thought that wealthier countries are more likely to have the technological accessibility needed to support widespread internet. We did find outside evidence to support this claim, this author from Pew Research @Author_2014 found that income is a strong predictor of internet use across countries. 
+We are examining whether there is a relationship between a country’s GDP per Capita and the percentage of its population using the internet. We got the internet data from Gapminder @Gapminder, which gives the proportion of people in each country that have internet access each year since 1960 and we got our income data from World Bank @World_Bank_Open_Data. This data provides the GDP per Capita of each country year by year. We hypothesize that countries with higher GDP per Capita will also have higher internet usage. We thought that wealthier countries are more likely to have the technological accessibility needed to support widespread internet. We did find outside evidence to support this claim, this author from Pew Research @Author_2014 found that income is a strong predictor of internet use across countries.
 
 ## Data Cleaning
 
 Before analysis, we converted any GDP per Capita values into full numeric values. For example, income values like "31.7k" were converted to "31700" to allow for numerical analysis. We applied this conversion to all years for each country, then reshaped the table so that each row corresponds to a single country-year observation. We performed a similar conversion for the Internet usage percentages before merging the two sources together.
+
 ```{r}
 # Load in all necessary packages
 library(tidyverse)
@@ -85,6 +86,7 @@ combined_data <- income_clean |>
 ## Modeling the Relationship between Average Internet Usage and GDP per Capita
 
 **Data Visualization**
+
 ```{r}
 # Code for 2.1 Part 1
 avg_data <- combined_data |>
@@ -109,8 +111,8 @@ ggplot(avg_data,
        caption = "Data Source: Gapminder & World Bank") +
   theme_minimal()
 ```
-The plot shows each country’s average GDP per Capita on the x‐axis and its average Internet usage rate on the y‐axis. From this plot we can see a positive trend that countries with higher average income also tend to have greater Internet usage.
 
+The plot shows each country’s average GDP per Capita on the x‐axis and its average Internet usage rate on the y‐axis. From this plot we can see a positive trend that countries with higher average income also tend to have greater Internet usage.
 
 ```{r}
 #| eval: false
@@ -144,11 +146,12 @@ animated_obj <- animate(animated_plot,
 anim_save("income_vs_internet.gif", 
           animation = animated_obj)
 ```
+
 ![](income_vs_internet.gif)
 
-The animated plot shows the change over time for all countries in the dataset. We can infer that over time, the internet usage has increased as the GDP per Capita also increased. 
+The animated plot shows the change over time for all countries in the dataset. We can infer that over time, the internet usage has increased as the GDP per Capita also increased.
 
-**Linear Regression** 
+**Linear Regression**
 
 For linear regression, we chose to summarize our data by getting each country’s average GDP per capita and average Internet usage rate across all years. We chose to do this because then every point in the plot is represented by a single country making it straightforward to fit a line through all countries’ averages.
 
@@ -201,13 +204,14 @@ tidy(model) |>
                       "p‐value"),
         align = c("l", "r", "r", "r", "r"))
 ```
-From our linear regression model, we can see that
-$$
+
+From our linear regression model, we can see that $$
 \widehat{\text{Internet}} \;=\; 12.683 \;+\; 0.001 \times \text{Income}.
-$$  
-The intercept (12.683, p = 3.96\times10^{-21}) represents a baseline Internet usage when Income = 0, and the slope (0.001, p = 1.67\times10^{-26}) indicates that a \$1 increase in GDP per Capita corresponds to a 0.001 percentage‐point increase in Internet usage.
+$$\
+The intercept (12.683, p = 3.96\times10\^{-21}) represents a baseline Internet usage when Income = 0, and the slope (0.001, p = 1.67\times10\^{-26}) indicates that a \$1 increase in GDP per Capita corresponds to a 0.001 percentage‐point increase in Internet usage.
 
 **Model Fit**
+
 ```{r}
 # Code for 2.3
 # Extract vectors
@@ -247,11 +251,13 @@ tibble(Statistic = c("Var(Response) = Var(avg_internet_users)",
                 font_size = 14) |>
   column_spec(1, bold = TRUE)
 ```
-The table presents the variances as well the model R². It shows us that the total variance in average Internet usage across countries is 298.517, of which 129.507 (about 43.4%) is explained by the linear relationship with average GDP per Capita; the remaining 169.010 represents unexplained variance. 
 
-Since R² = 0.434, our model accounts for roughly 43.4% of the variability in average internet usage. This suggests a moderate fit in our model which GDP per Capita explains cross‐country differences in Internet adoption, while additionally over half of the variance remains due to other factors. 
+The table presents the variances as well the model R². It shows us that the total variance in average Internet usage across countries is 298.517, of which 129.507 (about 43.4%) is explained by the linear relationship with average GDP per Capita; the remaining 169.010 represents unexplained variance.
 
-## Cross Validation 
+Since R² = 0.434, our model accounts for roughly 43.4% of the variability in average internet usage. This suggests a moderate fit in our model which GDP per Capita explains cross‐country differences in Internet adoption, while additionally over half of the variance remains due to other factors.
+
+## Cross Validation
+
 ```{r}
 
 library(purrr)
@@ -292,4 +298,4 @@ ggplot(r2_df, aes(x = factor(Fold), y = R2)) +
   theme_minimal()
 
 ```
-
+The plot shows the different R² values from the 5-fold-cross validation where each bar represents the model's performance on a different fold. The red dotted line marks the average R², which is about 0.39. This suggests that our model explains about 39% of the variation in internet usage when applied to new data. This is similar to the training R² of 0.434 meaning there is no significant evidence of over fitting. Even though performance varies between the folds, the results demonstrate that GDP per Capita is a decently effective predictor of internet usage. 
