@@ -257,46 +257,58 @@ Since R² = 0.434, our model accounts for roughly 43.4% of the variability in av
 ## Cross Validation
 
 ```{r}
+# Code for 3.1 and 3.2
+set.seed(93405)
 
-library(purrr)
-
-# Create the folds: we will use 5 folds (at least 10 samples per fold)
 k <- 5
 n <- nrow(avg_data)
-fold_assignments <- sample(rep(1:k, length.out = n))
+fold_assignments <- sample(rep(1:k, 
+                               length.out = n))
 
-# Define a function to compute R² for a single fold
+# Define a function to compute R²
 compute_r2_fold <- function(fold_num) {
   train_data <- avg_data[fold_assignments != fold_num, ]
-  val_data   <- avg_data[fold_assignments == fold_num, ]
-  
-  model_k <- lm(avg_internet_users ~ avg_income, data = train_data)
-  predictions <- predict(model_k, newdata = val_data)
-  
+  val_data <- avg_data[fold_assignments == fold_num, ]
+  model_k <- lm(avg_internet_users ~ avg_income, 
+                data = train_data)
+  predictions <- predict(model_k, 
+                         newdata = val_data)
   ss_res <- sum((val_data$avg_internet_users - predictions)^2)
-  ss_tot <- sum((val_data$avg_internet_users - mean(val_data$avg_internet_users))^2)
+  ss_tot <- sum((val_data$avg_internet_users -
+                   mean(val_data$avg_internet_users))^2)
   
   r2 <- 1 - ss_res / ss_tot
   return(r2)
 }
 
-# Compute R² for each fold using map
-r2_values <- map_dbl(1:k, compute_r2_fold)
+# Compute R² for each fold
+r2_values <- map_dbl(1:k, 
+                     compute_r2_fold)
 
-# Create a data frame for plotting
-r2_df <- tibble(Fold = 1:k, R2 = r2_values)
+# Data frame for plotting
+r2_df <- tibble(Fold = 1:k, 
+                R2 = r2_values)
 
-# Plot the R² values
-ggplot(r2_df, aes(x = factor(Fold), y = R2)) +
+ggplot(r2_df, 
+       aes(x = factor(Fold), 
+           y = R2)) +
   geom_col(fill = "steelblue") +
-  geom_hline(yintercept = mean(r2_values), linetype = "dashed", color = "red") +
+  geom_hline(yintercept = mean(r2_values), 
+             linetype = "dashed", 
+             color = "red") +
   labs(title = "R² Values from 5-Fold Cross-Validation",
        x = "Fold",
        y = "Validation R²") +
   theme_minimal()
-
 ```
-The plot above shows the different R² values from a 5-fold-cross validation where each bar represents the model's performance on a different fold. This is used to see if the model would respond to new data. The red dotted line marks the average R², which is about 0.39. This suggests that our model explains about 39% of the variation in internet usage when applied to new data, which is similar to the training R² of 0.434. This means there is no significant evidence of our model over fitting and we can thus conclude that GDP per Capita is a moderately effective predictor of internet usage. 
+In our 5-fold cross-validation for our model, we randomly split the country data into five roughly equal groups (each with at least 10 countries). For each group, we trained the regression model on the other four folds, predicted the internet usage for fold, and computed the validation R².
+
+The plot above shows the different R² values from a 5-fold-cross validation where each bar represents the model's performance on a different fold. This is used to see if the model would respond to new data. The red dotted line marks the average R², which is about 0.39. This suggests that our model explains about 39% of the variation in internet usage when applied to new data, which is similar to the R² value we computed of 0.434. This means there is no significant evidence of our model over fitting and we can thus conclude that GDP per Capita is a moderately effective predictor of internet usage. 
+
 
 ## Conclusion
-Our analysis reveals a positive relationship between a country’s per person wealth and its internet usage rates, which supports our initial hypothesis that greater individual wealth enable more access to technology. Although the model explains a notable portion of the variation in internet usage (as confirmed by the cross validation) there is still a large amount of the variation that was not explained by our model. This suggests that per person wealth is only one of many factors influencing internet access.
+Our analysis reveals a positive relationship between a country’s per person wealth and its internet usage rates, which supports our initial hypothesis that greater individual wealth enables more access to technology. Although the model explains a notable portion of the variation in internet usage (as confirmed by the cross validation) there is still a large amount of the variation that was not explained by our model that could be accounted for by other factors. If we were to continue on with this project, we would explore other factors that caused variation and attempt to explain it and its relationship to internet usage. Overall, our final report suggests that per person wealth is only one of many factors influencing internet access.
+
+##
+
+*To continuing viewing our project, you can find the GitHub repo we used for our project here: [STAT 331 Project Group I GitHub Repository](https://github.com/derrickph33/stat331-proj-groupi)*
